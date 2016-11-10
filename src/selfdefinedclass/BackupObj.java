@@ -7,8 +7,8 @@ public class BackupObj {
 	private List<List<List<Integer>>> Z;
 	
 	public BackupObj(List<List<Double>> X, List<List<List<Integer>>> Z){
-		this.X.equals(X);
-		this.Z.equals(Z);
+		this.X = new ArrayList<List<Double>>(X);
+		this.Z = new ArrayList<List<List<Integer>>>(Z);
 	}
 	
 	public List<List<Double>> getX(){

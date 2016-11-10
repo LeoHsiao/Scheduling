@@ -13,62 +13,62 @@ public class TaskScheduling {
 	public static final double distLimit = 50;
 	
 	public static void main(String[] argv) throws FileNotFoundException {
-		int datan, K, T;
+		int K, T;
 		double upperbound;
-		/*Scanner scanner = new Scanner(System.in);
-		K = scanner.nextInt();
-		T = scanner.nextInt();
-		
-		List<Double> handling_k = new ArrayList<Double>();
-		for(int k = 0; k < K; k++){
-			handling_k.add(scanner.nextDouble());
-		}
-		
-		List<Double> workload_t = new ArrayList<Double>();
-		for(int t = 0; t < T; t++){
-			workload_t.add(scanner.nextDouble());
-		}
-		
-		List<List<Double>> rewards_tk = new ArrayList<List<Double>>();
-		for(int t = 0; t < T; t++){
-			rewards_tk.add(new ArrayList<Double>());
-		}
-		for(int k = 0; k < K; k++){
-			for(int t = 0; t < T; t++){
-				rewards_tk.get(t).add(scanner.nextDouble());
-			}
-		}
-		
-		List<Double> penalty_k = new ArrayList<Double>();
-		for(int k = 0; k < K; k++){
-			penalty_k.add(scanner.nextDouble());
-		}
-		List<List<Double>> travel_kk = new ArrayList<List<Double>>();
-		for(int k = 0; k < K; k++){
-			travel_kk.add(new ArrayList<Double>());
-		}
-		for(int k1 = 0; k1 < K; k1++){
-			for(int k2 = k1; k2 < K; k2++){
-				if(k1 == k2)
-					travel_kk.get(k1).add(0.0);
-				else{
-					travel_kk.get(k1).add(scanner.nextDouble());
-					travel_kk.get(k2).add(scanner.nextDouble());
-				}
-			}
-		}
-		List<Double> N_k = new ArrayList<Double>();
-		for(int k = 0; k < K; k++){
-			N_k.add(scanner.nextDouble());
-		}
-		double gamma = 0.0;
-		gamma = scanner.nextDouble();*/
+        /*Scanner scanner = new Scanner(System.in);
+         K = scanner.nextInt();
+         T = scanner.nextInt();
+         
+         List<Double> handling_k = new ArrayList<Double>();
+         for(int k = 0; k < K; k++){
+         handling_k.add(scanner.nextDouble());
+         }
+         
+         List<Double> workload_t = new ArrayList<Double>();
+         for(int t = 0; t < T; t++){
+         workload_t.add(scanner.nextDouble());
+         }
+         
+         List<List<Double>> rewards_tk = new ArrayList<List<Double>>();
+         for(int t = 0; t < T; t++){
+         rewards_tk.add(new ArrayList<Double>());
+         }
+         for(int k = 0; k < K; k++){
+         for(int t = 0; t < T; t++){
+         rewards_tk.get(t).add(scanner.nextDouble());
+         }
+         }
+         
+         List<Double> penalty_k = new ArrayList<Double>();
+         for(int k = 0; k < K; k++){
+         penalty_k.add(scanner.nextDouble());
+         }
+         List<List<Double>> travel_kk = new ArrayList<List<Double>>();
+         for(int k = 0; k < K; k++){
+         travel_kk.add(new ArrayList<Double>());
+         }
+         for(int k1 = 0; k1 < K; k1++){
+         for(int k2 = k1; k2 < K; k2++){
+         if(k1 == k2)
+         travel_kk.get(k1).add(0.0);
+         else{
+         travel_kk.get(k1).add(scanner.nextDouble());
+         travel_kk.get(k2).add(scanner.nextDouble());
+         }
+         }
+         }
+         List<Double> N_k = new ArrayList<Double>();
+         for(int k = 0; k < K; k++){
+         N_k.add(scanner.nextDouble());
+         }
+         double gamma = 0.0;
+         gamma = scanner.nextDouble();*/
 		//fileio
 		String fileName = "./src/test2.txt";
 		File input_file = new File(fileName);
 		Scanner scanner = new Scanner(input_file);
-			K = scanner.nextInt();
 			
+			K = scanner.nextInt();
 			T = scanner.nextInt();
 			
 			List<List<Double>> rewards_tk = new ArrayList<List<Double>>();
@@ -112,13 +112,8 @@ public class TaskScheduling {
 			double gamma = 0.0;
 			gamma = scanner.nextDouble();			
 			
-			List<Double> lambda_xk = new ArrayList<Double>();
-			List<Double> lambda_yk = new ArrayList<Double>();
-			
-			for(int k = 0; k < K; k++){
-				lambda_xk.add(0.0);
-				lambda_yk.add(0.0);
-			}
+			List<Double> lambda_xk = new ArrayList<Double>(Collections.nCopies(K, (Double)0.0));
+			List<Double> lambda_yk = new ArrayList<Double>(Collections.nCopies(K, (Double)0.0));
 			
 			List<Double> actualWorkload_t = new ArrayList<Double>();
 			for(int t = 0; t < T; t++){
@@ -141,20 +136,15 @@ public class TaskScheduling {
 					delta = delta/2.0;
 					count =0;
 				}
-				System.out.println("step:" +step +", delta:" +delta + "\nlambda1:" +lambda_xk+ "\nlambda2:" +lambda_yk);
+				//System.out.println("step:" +step +", delta:" +delta + "\nlambda1:" +lambda_xk+ "\nlambda2:" +lambda_yk);
 				List<List<Double>> X_tk  = new ArrayList<List<Double>>();
 				List<List<Integer>> Y_tk = new ArrayList<List<Integer>>();
 				List<List<List<Integer>>> Z_tkk = new ArrayList<List<List<Integer>>>();
 				//solve t subproblem
 				for(int t = 0; t < T; t++){
 					//using a greedy approach with highest CP value
-					List<Task> tasks = new ArrayList<Task>();
-					for(int k =0; k < K; k++){
-						tasks.add(new Task(k, rewards_tk.get(t).get(k) - lambda_xk.get(k) - penalty_k.get(k) + lambda_yk.get(k)));
-					}
-					subproblemObj returnObj = subproblem(K, tasks, handling_k, travel_kk, gamma * workload_t.get(t));
+					subproblemObj returnObj = subproblem(K, rewards_tk.get(t), handling_k, travel_kk, gamma * workload_t.get(t),lambda_xk,lambda_yk,penalty_k);
 					X_tk.add(returnObj.getX());
-					
 					List<Integer> Y_k = new ArrayList<Integer>();
 					for(int k = 0; k < K; k++){
 						Y_k.add((int)( Math.ceil(X_tk.get(t).get(k))));
@@ -180,7 +170,6 @@ public class TaskScheduling {
 					}
 					Z_tkk.add(Z_kk);
 				}
-				System.out.println(X_tk);
 				U = 0.0;
 				// renew L
 				for(int t = 0; t < T; t++){
@@ -237,7 +226,7 @@ public class TaskScheduling {
 							delta/= 2.0;
 							count ++;
 							if(count >20){
-								System.out.println("count > 20");
+								//System.out.println("count > 20");
 								sol_X = new ArrayList<List<Double>>(X_tk);
 								sol_Y = new ArrayList<List<Integer>>(Y_tk);
 								sol_Z = new ArrayList<List<List<Integer>>>(Z_tkk);
@@ -259,91 +248,98 @@ public class TaskScheduling {
 			BackupObj outObj = backup(K, T, rewards_tk, penalty_k, handling_k, travel_kk, capacity, sol_X, sol_Z);
 			List<List<Double>> tempX = outObj.getX();
 			List<List<List<Integer>>> tempZ = outObj.getZ();
-			for(int t = 0; t < T; t++){
-				System.out.println(tempX.get(t));
-				for(int k = 0; k < K; k++){
-					System.out.println(tempZ.get(t).get(k));
-				}
-				System.out.println();
-			}
 			
-		
+			
+			PrintWriter output = new PrintWriter(System.out);
+			for(int k = 0; k < K; k++){
+				for(int t = 0; t < T; t++){
+					output.println(tempX.get(t).get(k));
+				}
+			}
+			for(int t = 0; t < T; t++){
+				int thisk = -1, nextk = -1;
+				for(int k = 0; k < K; k++){
+					for(int k1 = 0; k1 < K; k1++){
+						if(tempZ.get(t).get(k).get(k1) == 1){
+							thisk = k;
+							nextk = k1;
+							break;
+						}
+					}
+					if(thisk != -1)
+						break;
+				}
+				if(thisk != -1){
+					output.println(thisk);
+					while(nextk != thisk){
+						output.println(nextk);
+						nextk = tempZ.get(t).get(nextk).indexOf(Collections.max(tempZ.get(t).get(nextk)));
+					}
+				}
+			}
+		output.close();
 		scanner.close();
 	}
 	
-	private static subproblemObj subproblem(int K, List<Task> tasks, List<Double> handling, List<List<Double>> traveling, double capacity){
-		double max_val = -1.0;
-		List<Double> max_X_k = new ArrayList<Double>();
+	private static subproblemObj subproblem(int K, List<Double> Reward_k, List<Double> HandlingT_k, List<List<Double>> traveling, double workload,List<Double> lambda_xk, List<Double> lambda_yk, List<Double> Penalty_k){
+		double max_val = 0.0;
 		List<Integer> max_choose = new ArrayList<Integer>();
-		for(int k = 0; k < K; k++){
-			if(tasks.get(k).getValue() <= 0.0)
-				continue;
+		List<Double> max_X_k = new ArrayList<Double>();
+		for(int k=0;k<K;k++){
 			List<Double> X_k = new ArrayList<Double>(Collections.nCopies(K, 0.0));
 			List<Integer> cur_choose = new ArrayList<Integer>();
 			X_k.set(k,1.0);
 			cur_choose.add(k);
-			double leftCapacity = capacity - handling.get(k);
-			if(capacity < 0) 
-				continue;
-			double value = tasks.get(k).getValue();
-			int idx, n, cur_index;
-			double max_cp, max_time=0;
-			double cp;
-			while(leftCapacity > 0){
+			double capacity = workload - HandlingT_k.get(k);
+			double value = Reward_k.get(k)-lambda_xk.get(k)-Penalty_k.get(k)+lambda_yk.get(k);
+			if(capacity <0) continue;
+			if(value <0) continue;
+			int idx,n;
+			double prop=0;
+			double max_cp,max_time=0;
+			double time,cp;
+			while(capacity>0){
 				max_cp = 0;
 				idx = -1;
-				cur_index = -1;
 				n = cur_choose.size();
 				//find the point with highest CP value
-				for(int i = 0; i < n; i++){
-					int k1 = cur_choose.get(i);
-					for(int kk = 0; kk < K; kk++){
-						double traveltime = 0.0;
-						if(i+1 != n){
-							traveltime = traveling.get(k1).get(kk) + traveling.get(kk).get(cur_choose.get(i+1)) - traveling.get(k1).get(cur_choose.get(i+1));
-						}
-						else if(i+1 == n && n != 1){
-							traveltime = traveling.get(k1).get(kk) + traveling.get(kk).get(cur_choose.get(0)) - traveling.get(k1).get(cur_choose.get(0));
-						}
-						else{
-							traveltime = 2.0 * traveling.get(k1).get(kk);
-						}
-						if(cur_choose.contains(kk)) 
-							continue;
-						if( traveltime > leftCapacity) 
-							continue;
+				for(int i=0;i<n;i++){
+					List<Double> dist_k = traveling.get(cur_choose.get(i));
+					Double alpha = 2.0; //MST to spanning tree ratio
+					for(int kk=0;kk<K;kk++){
+						if(cur_choose.contains(kk)) continue;
+						if(alpha*dist_k.get(kk)>capacity) continue;
 						//cur_cp = (Reward - Penalty)/(Handling +travel)
-						if(leftCapacity > traveltime){
+						if(capacity > (alpha*dist_k.get(kk)+HandlingT_k.get(k))){
+							time = alpha*dist_k.get(kk)+HandlingT_k.get(k);
 							//can do whole task
-							cp = tasks.get(kk).getValue()/traveltime;
+							cp = (Reward_k.get(kk)-lambda_xk.get(kk)-Penalty_k.get(kk)+lambda_yk.get(kk))/time;
 							if(cp > max_cp){
 								max_cp = cp;
 								idx = kk;
-								cur_index = i+1;
-								max_time = traveltime;
+								prop = 1;
+								max_time = time;
 							}
 						}
-						/*else{
-							prop = (capacity - alpha * dist_k.get(kk)) / handling.get(k);
-							cp = (prop * tasks.get(kk).getValue()) / capacity;
+						else{
+							prop = (capacity - alpha*dist_k.get(kk)) / HandlingT_k.get(k);
+							cp = (prop*(Reward_k.get(kk)-lambda_xk.get(kk))-(Penalty_k.get(kk)-lambda_yk.get(kk)))/capacity;
 							if(cp > max_cp){
 								max_cp = cp;
 								idx = kk;
 								max_time = capacity;
 							}
-						}*/
+						}
 					}
 				}
-				if(idx == -1) 
-					break;
-				else if(max_cp <0) 
-					break;
+				if(idx == -1) break;
+				else if(max_cp <0) break;
 				else{
 					//add that point to choosen points @k
-					value += (max_cp * max_time);
-					leftCapacity -= max_time;
-					X_k.set(idx, 1.0);
-					cur_choose.add(cur_index, idx);
+					value += max_cp;
+					capacity -= max_time;
+					X_k.set(idx,prop);
+					cur_choose.add(idx);
 				}
 			}
 			if(value > max_val){
@@ -355,12 +351,11 @@ public class TaskScheduling {
 				max_choose.addAll(cur_choose);
 			}
 		}
+		
 		if(max_val <= 0){
 			max_X_k = new ArrayList<Double>(Collections.nCopies(K, 0.0));
 			max_choose.add(-1);
 		}
-		System.out.println(max_X_k);
-		System.out.println(max_choose);
 		return (new subproblemObj(max_X_k, max_choose));
 	}
 	
@@ -374,18 +369,22 @@ public class TaskScheduling {
 			for(int t = 0; t < T; t++){
 				sumk = sumk + X.get(t).get(k);
 			}
+			//System.out.println(sumk);
 			if(sumk == 1.0){
 				S.remove(S.indexOf(k));
 			}
 			if(sumk > 1.0){
+				//System.out.println(k);
 				List<Task> temp = new ArrayList<Task>();
 				for(int t = 0; t < T; t++){
 					if(X.get(t).get(k) == 1.0)
 					temp.add(new Task(t, rewards.get(t).get(k)));
 				}
 				Task maxDay = Collections.max(temp);
+				
 				for(int t = 0; t < T; t++){
-					if(t != maxDay.getId()){
+					if(X.get(t).get(k) > 0.0 && t != maxDay.getId()){
+						//System.out.println(t);
 						X.get(t).set(k, 0.0);
 						int kto = -1, kfrom = -1;
 						for(int k1 = 0; k1 < K; k1++){
@@ -404,6 +403,7 @@ public class TaskScheduling {
 				S.remove(S.indexOf(k));
 			}
 		}
+		
 		List<Double> Used = new ArrayList<Double>();
 		for(int t = 0; t < T; t++){
 			Used.add(0.0);
@@ -411,18 +411,18 @@ public class TaskScheduling {
 		for(int k = 0; k < K; k++){
 			for(int t = 0; t < T; t++){
 				if(X.get(t).get(k) == 1){
-					double travel = traveling.get(k).get( Z.get(k).indexOf(Collections.max(Z.get(t).get(k))));
+					double travel = traveling.get(k).get( Z.get(t).get(k).indexOf(Collections.max(Z.get(t).get(k))));
 					Used.set(t, Used.get(t) + travel + rewards.get(t).get(k));
 				}
 			}
 		}
+		
 		for(int t = 0; t < T; t++){
 			if(Used.get(t) > capacity.get(t)){
-				System.out.println("capacity error(Backup)");
+				//System.out.println("capacity error(Backup)");
 				break;
 			}
 		}
-		
 		while(S.size() > 0){
 			List<Double> costList = new ArrayList<Double>();
 			List<Integer> tList = new ArrayList<Integer>();
@@ -446,10 +446,6 @@ public class TaskScheduling {
 				int k1 = startk;
 				if(k1 != -1){
 					for(int k = 0; k < K; k++){
-						System.out.println("Z size "+Z.size());
-						System.out.println("Z_t size "+Z.get(t).size());
-						System.out.println("k1  "+k1);
-						System.out.println("Z_t_k1 size "+Z.get(t).get(k1).size());
 						if(Z.get(t).get(k1).get(k) == 1){
 							if(Used.get(t) + traveling.get(k1).get(i) + traveling.get(i).get(k) - traveling.get(k1).get(k) < capacity.get(t)){
 								if(traveling.get(k1).get(i) + traveling.get(i).get(k) - traveling.get(k1).get(k) < mintime){
@@ -488,10 +484,16 @@ public class TaskScheduling {
 					xk = xk + X.get(t1).get(chosenk);
 				}
 				if(Used.get(t) + (handling.get(chosenk)*(1.0-xk)) + traveling.get(fromk).get(chosenk) + traveling.get(chosenk).get(tok) - traveling.get(fromk).get(tok) < capacity.get(t)){
-					X.get(t).set(chosenk, (1.0-xk));
-					Z.get(t).get(fromk).set(tok, 0);
-					Z.get(t).get(fromk).set(chosenk, 1);
-					Z.get(t).get(chosenk).set(tok, 1);
+					if(X.get(t).get(chosenk) > 0.0){
+						X.get(t).set(chosenk, X.get(t).get(chosenk) + (1.0-xk));
+					}
+					else{
+						X.get(t).set(chosenk, (1.0-xk));
+						Z.get(t).get(fromk).set(tok, 0);
+						Z.get(t).get(fromk).set(chosenk, 1);
+						Z.get(t).get(chosenk).set(tok, 1);
+					}
+					
 					S.remove(i);
 				}
 				else{
@@ -503,11 +505,10 @@ public class TaskScheduling {
 				}
 			}
 		}
+		
 		BackupObj returnObj = new BackupObj(X, Z);
+		
 		return returnObj;
 	}
 	
 }
-
-			
-	
