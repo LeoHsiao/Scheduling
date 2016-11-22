@@ -64,7 +64,7 @@ public class TaskScheduling {
          double gamma = 0.0;
          gamma = scanner.nextDouble();*/
 		//fileio
-		String fileName = "./src/test2.txt";
+		String fileName = "./src/test3.txt";
 		File input_file = new File(fileName);
 		Scanner scanner = new Scanner(input_file);
 			
@@ -248,7 +248,20 @@ public class TaskScheduling {
 			BackupObj outObj = backup(K, T, rewards_tk, penalty_k, handling_k, travel_kk, capacity, sol_X, sol_Z);
 			List<List<Double>> tempX = outObj.getX();
 			List<List<List<Integer>>> tempZ = outObj.getZ();
-			
+			for(int t = 0; t < T; t++){
+				
+					System.err.println(tempX.get(t));
+				
+			}
+			double MAXObj = 0.0;
+			for(int t = 0; t < T; t++){
+				for(int k = 0; k < K; k++){
+					if(tempX.get(t).get(k) > 0.0){
+						MAXObj = MAXObj + tempX.get(t).get(k) * rewards_tk.get(t).get(k) - penalty_k.get(k);
+					}
+				}
+			}
+			System.err.println("reward: " + MAXObj);
 			
 			PrintWriter output = new PrintWriter(System.out);
 			for(int k = 0; k < K; k++){
@@ -361,27 +374,33 @@ public class TaskScheduling {
 	
 	private static BackupObj backup(int K, int T, List<List<Double>> rewards, List<Double> penalty, List<Double> handling, List<List<Double>> traveling, List<Double> capacity, List<List<Double>> X, List<List<List<Integer>>> Z){
 		List<Integer> S = new ArrayList<Integer>();
+		//把所有task放進一個集合Ｓ
 		for(int k = 0; k < K; k++){
 			S.add(k);
 		}
+		//計算所有task目前被做的次數
 		for(int k = 0; k < K; k++){
 			double sumk = 0.0;
 			for(int t = 0; t < T; t++){
 				sumk = sumk + X.get(t).get(k);
 			}
 			//System.out.println(sumk);
+			//做的次數剛好等於1的話就把那個task從集合Ｓ中移除
 			if(sumk == 1.0){
 				S.remove(S.indexOf(k));
 			}
+			//做的次數大於1的就調整成1，並把該task從Ｓ中移除
 			if(sumk > 1.0){
 				//System.out.println(k);
 				List<Task> temp = new ArrayList<Task>();
+				//把所有會把那個task完整做完的day抓出來,並找到當中reward最大的
 				for(int t = 0; t < T; t++){
 					if(X.get(t).get(k) == 1.0)
 					temp.add(new Task(t, rewards.get(t).get(k)));
 				}
 				Task maxDay = Collections.max(temp);
-				
+				//調整被移除的日期的路徑
+				//後來發現這裡有一個bug，就是如果那個task做的總次數大1，但是沒有一天完整做完（＝1）會有error
 				for(int t = 0; t < T; t++){
 					if(X.get(t).get(k) > 0.0 && t != maxDay.getId()){
 						//System.out.println(t);
@@ -403,7 +422,7 @@ public class TaskScheduling {
 				S.remove(S.indexOf(k));
 			}
 		}
-		
+		//計算剩的capacity
 		List<Double> Used = new ArrayList<Double>();
 		for(int t = 0; t < T; t++){
 			Used.add(0.0);
@@ -423,11 +442,14 @@ public class TaskScheduling {
 				break;
 			}
 		}
+		//把不足1的調整到做完，並移除
 		while(S.size() > 0){
 			List<Double> costList = new ArrayList<Double>();
 			List<Integer> tList = new ArrayList<Integer>();
 			List<Integer> fromList = new ArrayList<Integer>();
 			List<Integer> toList = new ArrayList<Integer>();
+			//找到Ｓ中的各個task加進各天的reward除capacity最大的值，存進costlist（有考慮不能全部放進去的話就只算能放進去的部分的reward)
+			//上次meeting好像有發現如果某天只有一個task會有問題，但實際狀況應該不會只有一個task，因為會有起始點之類的，不是很確定
 			for(int i = 0; i < S.size(); i++){
 				List<Task> reward_k = new ArrayList<Task>();
 				for(int t = 0; t < T; t++){
@@ -469,6 +491,7 @@ public class TaskScheduling {
 					toList.add(minto);
 					tList.add(t);
 				}
+				//如果沒有可以放進去的day就存-1，這裡min_value好像有問題
 				else{
 					costList.add(Double.MIN_VALUE);
 					fromList.add(minfrom);
@@ -476,6 +499,7 @@ public class TaskScheduling {
 					tList.add(t);
 				}
 			}
+			//找到其中reward/cost最大的放進去，如果該task做完就從Ｓ中移除
 			if(Collections.max(costList) > 0){
 				int i = costList.indexOf(Collections.max(costList));
 				int chosenk = S.get(i), fromk = fromList.get(i), tok = toList.get(i), t = tList.get(i);
